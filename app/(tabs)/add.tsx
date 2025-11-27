@@ -3,15 +3,22 @@ import { addDocument } from '@/services/document';
 import { supabase } from '@/services/supabase';
 import { Category } from '@/types/category';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { Alert, Button, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+
+type FileAsset = {
+  uri: string;
+  name: string;
+  mimeType?: string;
+};
 
 export default function AddDocumentScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [keywords, setKeywords] = useState('');
-  const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [file, setFile] = useState<FileAsset | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   
@@ -66,12 +73,40 @@ export default function AddDocumentScreen() {
         type: '*/*',
         copyToCacheDirectory: true,
       });
-      if (result.canceled === false) {
+      if (result.canceled === false && result.assets) {
         setFile(result.assets[0]);
       }
     } catch (err) {
       console.error('Erreur lors de la sélection du fichier :', err);
       Alert.alert('Erreur', 'Impossible de sélectionner le fichier.');
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Vous devez autoriser l\'accès à l\'appareil photo.');
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets) {
+        const image = result.assets[0];
+        const fileName = image.uri.split('/').pop() || `photo_${Date.now()}.jpg`;
+        setFile({
+          uri: image.uri,
+          name: fileName,
+          mimeType: image.mimeType || 'image/jpeg',
+        });
+      }
+    } catch (err) {
+      console.error('Erreur lors de la prise de photo :', err);
+      Alert.alert('Erreur', 'Impossible de prendre la photo.');
     }
   };
 
@@ -135,8 +170,11 @@ export default function AddDocumentScreen() {
             <Button title="+" onPress={handleAddCategory} />
         </View>
 
+        <ThemedText style={styles.label}>Fichier *</ThemedText>
         <View style={styles.buttonContainer}>
-            <Button title="Sélectionner un fichier *" onPress={selectFile} />
+            <Button title="Sélectionner un fichier" onPress={selectFile} />
+            <View style={{ height: 10 }} />
+            <Button title="Prendre une photo" onPress={takePhoto} />
         </View>
         {file && <ThemedText>Fichier : {file.name}</ThemedText>}
         

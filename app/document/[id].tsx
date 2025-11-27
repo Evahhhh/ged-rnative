@@ -7,6 +7,8 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as MediaLibrary from 'expo-media-library';
 
 export default function DocumentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,6 +16,7 @@ export default function DocumentDetailScreen() {
   const router = useRouter();
   const [document, setDocument] = useState<DocumentWithCategories | null>(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   const fetchDocument = useCallback(async () => {
     if (!id) return;
@@ -28,7 +31,7 @@ export default function DocumentDetailScreen() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, router]);
 
   useEffect(() => {
     if (!document) {
@@ -61,6 +64,32 @@ export default function DocumentDetailScreen() {
     );
   };
   
+  const handleDownload = async () => {
+    if (!document) return;
+
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Vous devez autoriser l\'accès à la médiathèque pour télécharger.');
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const fileName = document.file_url.split('/').pop() || 'downloaded_file';
+      const fileUri = FileSystem.documentDirectory + fileName;
+      
+      const { uri } = await FileSystem.downloadAsync(document.file_url, fileUri);
+      
+      await MediaLibrary.saveToLibraryAsync(uri);
+      Alert.alert('Téléchargé', `Le fichier "${fileName}" a été enregistré dans votre médiathèque.`);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      Alert.alert('Erreur', 'Impossible de télécharger le fichier.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading) {
     return (
       <ThemedView style={styles.centered}>
@@ -78,14 +107,19 @@ export default function DocumentDetailScreen() {
   }
 
   const isOwner = user?.id === document.user_id;
-  const isImage = document.file_url.match(/\.(jpeg|jpg|gif|png)$/) != null;
+  const isImage = document.file_url.match(/\.(jpeg|jpg|gif|png)$/i) != null;
 
   return (
     <ScrollView style={styles.container}>
       <ThemedText type="title" style={styles.title}>{document.title}</ThemedText>
       
       {isImage ? (
-          <Image source={{ uri: document.file_url }} style={styles.imagePreview} />
+          <View>
+            <Image source={{ uri: document.file_url }} style={styles.imagePreview} />
+            <View style={styles.downloadButtonContainer}>
+              <Button title={downloading ? "Téléchargement..." : "Télécharger l'image"} onPress={handleDownload} disabled={downloading} />
+            </View>
+          </View>
         ) : (
           <View style={styles.fileDownloadCard}>
             <Ionicons name="document-text-outline" size={24} color="#0a7ea4" />
@@ -157,6 +191,9 @@ const styles = StyleSheet.create({
   imagePreview: {
     width: '100%',
     height: 250,
+  },
+  downloadButtonContainer: {
+    margin: 15,
   },
   fileDownloadCard: {
     flexDirection: 'row',
