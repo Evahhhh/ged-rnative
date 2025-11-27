@@ -1,98 +1,152 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useAuth } from "@/context/Auth";
+import { getDocuments } from "@/services/document";
+import { Document } from "@/types/document";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { user } = useAuth();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
+  const loadDocuments = useCallback(async () => {
+    if (!user) {
+      // Don't load if there's no user. You might want to handle this case,
+      // for example by showing a login prompt or an empty state.
+      setDocuments([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      const data = await getDocuments(user.id);
+      setDocuments(data);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "An unknown error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadDocuments();
+    }, [loadDocuments])
+  );
+
+  const renderItem = ({ item }: { item: Document }) => (
+    <TouchableOpacity
+      onPress={() => {
+        router.push(`/document/${item.id}`);
+      }}
+    >
+      <View style={styles.itemContainer}>
+        <ThemedText type="defaultSemiBold" style={styles.itemTitle}>
+          {item.title}
         </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
+        <ThemedText numberOfLines={2} style={styles.itemDescription}>
+          {item.description}
         </ThemedText>
+        <ThemedText style={styles.itemDate}>
+          Ajouté le: {new Date(item.created_at).toLocaleDateString()}
+        </ThemedText>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <ThemedView style={styles.center}>
+        <ActivityIndicator size="large" />
       </ThemedView>
-    </ParallaxScrollView>
+    );
+  }
+
+  if (error) {
+    return (
+      <ThemedView style={styles.center}>
+        <ThemedText type="subtitle">Erreur</ThemedText>
+        <ThemedText>{error}</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  return (
+    <ThemedView style={styles.container}>
+      <ThemedText type="title" style={styles.title}>
+        Mes Documents
+      </ThemedText>
+      <FlatList
+        data={documents}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+      />
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#f0f0f0", // Light gray background to contrast with cards
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    textAlign: "center",
+    paddingVertical: 20,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  list: {
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  itemContainer: {
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 15,
+    marginVertical: 5,
+    // Shadow for iOS
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+    // Shadow for Android
+    elevation: 3,
+  },
+  itemTitle: {
+    fontSize: 18,
+    marginBottom: 5,
+  },
+  itemDescription: {
+    color: "#666",
+    marginBottom: 10,
+  },
+  itemDate: {
+    fontSize: 12,
+    color: "#999",
+    textAlign: "right",
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
   },
 });
