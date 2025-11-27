@@ -17,10 +17,6 @@ function RootLayoutNav() {
   const segments = useSegments();
 
   useEffect(() => {
-    console.log('--- NAV ---');
-    console.log('Loading:', loading);
-    console.log('Session:', session ? 'Exists' : 'null');
-    console.log('Segments:', segments);
 
     if (loading) {
       console.log('Returning due to loading');
@@ -28,16 +24,11 @@ function RootLayoutNav() {
     }
 
     const isAuthRoute = segments.includes('login') || segments.includes('signup');
-    console.log('isAuthRoute:', isAuthRoute);
 
     if (session && isAuthRoute) {
-      console.log('Redirecting to (tabs) because user is on auth route while logged in');
       router.replace('/(tabs)');
     } else if (!session && !isAuthRoute) {
-      console.log('Redirecting to login because user is not on auth route and not logged in');
       router.replace('/login');
-    } else {
-      console.log('No redirect needed.');
     }
   }, [session, loading, segments]);
 
