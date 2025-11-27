@@ -13,7 +13,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: true, // On affiche le header pour avoir le titre de la page
+        headerShown: true,
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen

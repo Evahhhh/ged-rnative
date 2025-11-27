@@ -1,14 +1,13 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
 import { useEffect } from 'react';
+import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/context/Auth';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export const unstable_settings = {
-  // Assurer que le rechargement ré-exécute le layout racine.
   initialRouteName: '(tabs)',
 };
 
@@ -25,18 +24,16 @@ function RootLayoutNav() {
 
     if (loading) {
       console.log('Returning due to loading');
-      return; // Wait for the session to load
+      return;
     }
 
     const isAuthRoute = segments.includes('login') || segments.includes('signup');
     console.log('isAuthRoute:', isAuthRoute);
 
     if (session && isAuthRoute) {
-      // User is signed in but on an auth screen (login/signup), redirect to home.
       console.log('Redirecting to (tabs) because user is on auth route while logged in');
       router.replace('/(tabs)');
     } else if (!session && !isAuthRoute) {
-      // User is not signed in and not on an auth screen, redirect to login.
       console.log('Redirecting to login because user is not on auth route and not logged in');
       router.replace('/login');
     } else {

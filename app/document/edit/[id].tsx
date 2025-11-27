@@ -1,12 +1,12 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, View, ActivityIndicator, Alert, Button, TextInput, ScrollView, TouchableOpacity } from 'react-native';
-import { getDocumentById, getCategories, updateDocument, DocumentWithCategories } from '@/services/document';
-import * as DocumentPicker from 'expo-document-picker';
+import { getCategories, getDocumentById, updateDocument } from '@/services/document';
 import { Category } from '@/types/category';
+import * as DocumentPicker from 'expo-document-picker';
 import { Image } from 'expo-image';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function DocumentEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -78,7 +78,7 @@ export default function DocumentEditScreen() {
       );
 
       Alert.alert('Succès', 'Document mis à jour.');
-      router.push(`/document/${id}`); // Go back to detail screen
+      router.push(`/document/${id}`); 
     } catch (error: any) {
       Alert.alert('Erreur', error.message || 'Impossible de mettre à jour le document.');
       console.error(error);

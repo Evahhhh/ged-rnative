@@ -1,9 +1,8 @@
+import { Category } from '@/types/category';
+import { Document } from '@/types/document';
 import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from './supabase';
-import { Document } from '@/types/document';
-import { Category } from '@/types/category';
 
-// Function to convert base64 to ArrayBuffer
 const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   const binary_string = window.atob(base64);
   const len = binary_string.length;
@@ -16,10 +15,8 @@ const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
 
 
 
-// Represents a Document joined with its Categories
 export type DocumentWithCategories = Document & { categories: Category[] };
 
-// Represents the data needed to create/update a document from the UI
 export interface DocumentData {
   title: string;
   description: string;
@@ -56,7 +53,6 @@ export const getDocumentById = async (id: string): Promise<DocumentWithCategorie
     throw new Error('Document not found');
   }
 
-  // Supabase returns the join as is, so we'll ensure categories is an array
   const result = { ...data, categories: Array.isArray(data.categories) ? data.categories : [] };
   return result as DocumentWithCategories;
 };
@@ -71,7 +67,6 @@ export const getCategories = async (): Promise<Category[]> => {
 }
 
 export const deleteDocument = async (document: { id: string, file_url: string }): Promise<void> => {
-    // 1. Delete file from storage
     const urlParts = document.file_url.split('/');
     const filePath = urlParts.slice(urlParts.length - 2).join('/');
     
@@ -82,7 +77,6 @@ export const deleteDocument = async (document: { id: string, file_url: string })
         }
     }
 
-    // 2. Delete document record from database (cascade should handle document_categories)
     const { error: dbError } = await supabase.from('documents').delete().eq('id', document.id);
     if (dbError) {
         console.error('Error deleting document from database:', dbError);
@@ -145,7 +139,7 @@ export const updateDocument = async (
         .update({ 
             ...updates, 
             keywords: keywordsArray,
-            ...(fileUrl && { file_url: fileUrl }), // Conditionally add file_url to update object
+            ...(fileUrl && { file_url: fileUrl }), 
             updated_at: new Date().toISOString(),
         })
         .eq('id', docId)
@@ -155,7 +149,6 @@ export const updateDocument = async (
     if (updateError) throw new Error(updateError.message);
     if (!updatedDocument) throw new Error('Failed to update document.');
 
-    // Sync categories
     await supabase.from('document_categories').delete().eq('document_id', docId);
     if (categoryIds.length > 0) {
         const links = categoryIds.map(categoryId => ({ document_id: docId, category_id: categoryId }));

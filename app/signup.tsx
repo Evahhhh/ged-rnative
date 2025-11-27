@@ -1,9 +1,9 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useAuth } from '@/context/Auth';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, Button, Alert, View, ActivityIndicator } from 'react-native';
-import { useAuth } from '@/context/Auth';
+import { ActivityIndicator, Alert, Button, StyleSheet, TextInput, View } from 'react-native';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
@@ -23,7 +23,7 @@ export default function SignUpScreen() {
         'Inscription réussie !',
         'Veuillez vérifier votre boîte de réception pour confirmer votre adresse e-mail.'
       );
-      router.back(); // Retourner à l'écran de connexion
+      router.back();
     }
   };
 

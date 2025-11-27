@@ -1,9 +1,9 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useAuth } from '@/context/Auth';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, Button, Alert, View, ActivityIndicator } from 'react-native';
-import { useAuth } from '@/context/Auth';
+import { ActivityIndicator, Alert, Button, StyleSheet, TextInput, View } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -16,7 +16,6 @@ export default function LoginScreen() {
     if (error) {
       Alert.alert('Erreur de connexion', error.message);
     }
-    // La redirection en cas de succès est gérée par le RootLayout
   };
 
   const handleSignUp = () => {

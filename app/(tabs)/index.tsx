@@ -22,8 +22,6 @@ export default function HomeScreen() {
 
   const loadDocuments = useCallback(async () => {
     if (!user) {
-      // Don't load if there's no user. You might want to handle this case,
-      // for example by showing a login prompt or an empty state.
       setDocuments([]);
       setLoading(false);
       return;
@@ -101,7 +99,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f0f0", // Light gray background to contrast with cards
+    backgroundColor: "#f0f0f0",
   },
   title: {
     textAlign: "center",
@@ -119,7 +117,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     marginVertical: 5,
-    // Shadow for iOS
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -127,7 +124,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.22,
     shadowRadius: 2.22,
-    // Shadow for Android
     elevation: 3,
   },
   itemTitle: {

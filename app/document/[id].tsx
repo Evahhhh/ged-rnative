@@ -1,13 +1,12 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/context/Auth';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, View, ActivityIndicator, Alert, Button, Linking, ScrollView, TouchableOpacity } from 'react-native';
-import { getDocumentById, deleteDocument, DocumentWithCategories } from '@/services/document';
-import { useFocusEffect } from 'expo-router';
-import { Image } from 'expo-image';
+import { deleteDocument, DocumentWithCategories, getDocumentById } from '@/services/document';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Button, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function DocumentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,7 +24,7 @@ export default function DocumentDetailScreen() {
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de charger le document.');
       console.error("Error loading document:", error);
-      // router.back(); // Temporarily disabled for debugging
+      router.back();
     } finally {
       setLoading(false);
     }

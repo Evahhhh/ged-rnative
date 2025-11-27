@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/context/Auth';
 import React from 'react';
-import { StyleSheet, Button, View, Alert } from 'react-native';
+import { Alert, Button, StyleSheet, View } from 'react-native';
 
 export default function ProfileScreen() {
   const { session, signOut } = useAuth();
@@ -12,7 +12,6 @@ export default function ProfileScreen() {
     if (error) {
       Alert.alert('Erreur', "Une erreur est survenue lors de la déconnexion.");
     }
-    // La redirection est gérée automatiquement par le RootLayout
   };
 
   return (

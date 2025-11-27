@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, FlatList, View, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -15,29 +15,24 @@ export default function ExploreScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchDocuments = async () => {
-    if (refreshing) return; // Don't fetch if already refreshing
+    if (refreshing) return;
     setLoading(true);
     setError(null);
     try {
       let query = supabase.from('documents').select('*').order('created_at', { ascending: false });
 
       if (searchQuery.trim()) {
-        // Sanitize the search query to build a valid tsquery.
-        // 1. Trim whitespace from the query.
-        // 2. Split the query into individual words.
-        // 3. For each word, append ':*' to enable prefix matching (e.g., 'doc' finds 'document').
-        // 4. Join the words with '&' so all words must appear in the result.
         const tsquery = searchQuery
           .trim()
           .split(/\s+/)
-          .filter(Boolean) // Remove empty strings that can result from multiple spaces
+          .filter(Boolean)
           .map(term => term + ':*')
           .join(' & ');
         
         if (tsquery) {
             query = query.textSearch('title_description', tsquery, {
                 type: 'tsquery',
-                config: 'french' // Specify french dictionary for better search
+                config: 'french' 
             });
         }
       }
@@ -56,11 +51,10 @@ export default function ExploreScreen() {
     }
   };
 
-  // Debounced search effect
   useEffect(() => {
     const handler = setTimeout(() => {
       fetchDocuments();
-    }, 300); // 300ms delay
+    }, 300); 
 
     return () => {
       clearTimeout(handler);
@@ -69,7 +63,7 @@ export default function ExploreScreen() {
   
   const onRefresh = () => {
       setRefreshing(true);
-      setSearchQuery(''); // Also clear search on refresh
+      setSearchQuery(''); 
       fetchDocuments();
   }
 

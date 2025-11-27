@@ -1,12 +1,11 @@
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, TextInput, Button, View, Alert, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { addDocument } from '@/services/document';
+import { supabase } from '@/services/supabase';
+import { Category } from '@/types/category';
 import * as DocumentPicker from 'expo-document-picker';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Category } from '@/types/category';
-import { addDocument } from '@/services/document';
-import { supabase } from '@/services/supabase'; // Keep for fetching categories
+import React, { useCallback, useState } from 'react';
+import { Alert, Button, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AddDocumentScreen() {
   const [title, setTitle] = useState('');
@@ -65,7 +64,7 @@ export default function AddDocumentScreen() {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: '*/*',
-        copyToCacheDirectory: true, // Important for stable URI
+        copyToCacheDirectory: true,
       });
       if (result.canceled === false) {
         setFile(result.assets[0]);
@@ -91,13 +90,12 @@ export default function AddDocumentScreen() {
       );
 
       Alert.alert('Succès', 'Document ajouté avec succès !');
-      // Reset form and navigate away
       setTitle('');
       setDescription('');
       setKeywords('');
       setFile(null);
       setSelectedCategories(new Set());
-      router.push('/(tabs)'); // Navigate to home screen
+      router.push('/(tabs)');
     } catch (error: any) {
       Alert.alert('Erreur', error.message || "Une erreur est survenue lors de l'ajout du document.");
     } finally {
